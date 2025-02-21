@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import prisma from "./prisma";
 import userRoutes from "./routes/authRoute";
 import './utils/deleteExpiryOtp';
+import cookieParser from 'cookie-parser'
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/auth", userRoutes);
 

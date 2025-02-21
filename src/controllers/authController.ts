@@ -8,6 +8,10 @@ import { otpTemplate } from '../utils/Template/verifyEmail';
 
 dotenv.config();
 
+interface AuthRequest extends Request {
+    user?: any;
+}
+
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -52,6 +56,10 @@ export const registerUser = async (req: Request, res: Response) => {
             data: { name, email, password: hashedPassword },
         });
 
+        const profile = await prisma.profile.create({
+            data: { userId: newUser.id },
+        });
+
         return res.status(201).json({ message: "User registered successfully", user: newUser });
     } catch (error) {
         console.error("Registration error:", error);
@@ -72,6 +80,10 @@ export const loginUser = async (req: Request, res: Response) => {
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1h" });
         console.log(token);
+
+        res.cookie("token", token, { httpOnly: true });
+
+        res.setHeader("Authorization", `Bearer ${token}`);
 
         res.json({ message: "Login successful", token, user: user });
     } catch (error: any) {
@@ -124,4 +136,79 @@ export const createOtp = async (req: Request, res: Response): Promise<Response> 
     }
 }
 
+export const getUserDetails = async (req: AuthRequest, res: Response): Promise<Response> => {
+    try {
+        const { userId } = req.user;
+        const userDetails = await prisma.user.findFirst({
+            where: { id: userId }, select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                profile: true,
+                orders: true
+            }
+        });
+        if (!userDetails) {
+            return res.status(500).json({
+                success: false,
+                message: "Something Went Wrong with Auth Token"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "User Details Successfully Retrieved!",
+            userDetail: userDetails
+        })
+    }
+    catch (e: any) {
+        return res.status(500).json({
+            success: false,
+            message: "Error while fetching User Data!",
+            error: e.message
+        })
+    }
+}
 
+export const logoutUser = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        res.clearCookie("token");
+        return res.status(200).json({
+            success: true,
+            message: "User Successfully Logged Out!"
+        })
+    }
+    catch (e: any) {
+        return res.status(500).json({
+            success: false,
+            message: "Error while Logging Out!",
+            error: e.message
+        })
+    }
+}
+
+export const deleteUser = async (req: AuthRequest, res: Response): Promise<Response> => {
+    try {
+        const { userId } = req.user;
+        const user = await prisma.user.delete({
+            where: { id: userId }
+        });
+        if (!user) {
+            return res.status(500).json({
+                success: false,
+                message: "Something Went Wrong while Deleting User!"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "User Successfully Deleted!"
+        })
+    }
+    catch (e: any) {
+        return res.status(500).json({
+            success: false,
+            message: "Error while Deleting User!",
+            error: e.message
+        })
+    }
+}
