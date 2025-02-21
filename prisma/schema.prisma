@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  orders   Order[]
+  role     Role     @default(CUSTOMER)
+  profile  Profile?
+}
+
+enum Role {
+  ADMIN
+  SELLER
+  CUSTOMER
+}
+
+model Profile {
+  id           String @id @default(uuid())
+  gender       String
+  profilePhoto String
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id     String  @id @default(uuid())
+  name   String
+  price  Float
+  stock  Int
+  orders Order[]
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now())
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  otp       Int      @unique
+  email     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime @default(dbgenerated("(now() + interval '10 minutes')"))
+}
