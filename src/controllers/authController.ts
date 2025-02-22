@@ -99,42 +99,45 @@ export const createOtp = async (req: Request, res: Response): Promise<Response> 
     try {
         const { email } = req.body;
 
-        const user = await prisma.user.findFirst({ where: { email } });
+        const user = await prisma.user.findUnique({ where: { email } });
         if (user) {
-            return res.status(301).json({
+            return res.status(409).json({
                 success: false,
-                message: "You Cannot Create User who Already Signed Up!"
-            })
+                message: "User already exists! Cannot create OTP."
+            });
         }
 
-        const otp = Math.floor(Math.random() * 90000);
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
         const html = otpTemplate(otp);
-        const subject = `Otp Verification Code at Wezire-Shop`
+        const subject = "OTP Verification Code at Wezire-Shop";
+        const payload = { subject, html };
 
-        const payload = {
-            subject,
-            html
-        }
+        // Calculate OTP expiry (10 minutes from now)
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-        const otpDetails = await prisma.otp.create({
-            data: { otp, email }
-        })
+        // Save OTP in database
+        await prisma.otp.create({
+            data: { otp, email, expiresAt }
+        });
 
+        // Send OTP email
         await sendVerificationEmail(email, payload);
 
         return res.status(200).json({
             success: true,
-            message: "OTP Successfully Sent to User!"
-        })
-    }
-    catch (e: any) {
+            message: "OTP successfully sent to user!"
+        });
+    } catch (error: any) {
+        console.error("Error creating OTP:", error);
         return res.status(500).json({
             success: false,
-            message: "Something Went Wrong",
-            error: e.message
-        })
+            message: "Something went wrong",
+            error: error.message
+        });
     }
-}
+};
 
 export const getUserDetails = async (req: AuthRequest, res: Response): Promise<Response> => {
     try {
