@@ -57,7 +57,7 @@ export const registerUser = async (req: Request, res: Response) => {
         });
 
         const profile = await prisma.profile.create({
-            data: { userId: newUser.id },
+            data: { userId: newUser.id, gender: "Not Specified", profilePhoto: "" },
         });
 
         return res.status(201).json({ message: "User registered successfully", user: newUser });
