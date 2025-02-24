@@ -24,7 +24,7 @@ export const registerSeller = async (req: Request, res: Response) => {
         }
 
         const otpDetails = await prisma.otp.findFirst({
-            where: { email, otp },
+            where: { otp },
         });
 
         if (!otpDetails) {
@@ -48,7 +48,8 @@ export const registerSeller = async (req: Request, res: Response) => {
             });
         }
 
-        await prisma.otp.delete({ where: { email } });
+        await prisma.otp.deleteMany({ where: { email } });
+
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -83,7 +84,7 @@ export const loginSeller = async (req: Request, res: Response) => {
 
         res.setHeader("Authorization", `Bearer ${token}`);
 
-        res.json({ message: "Login successful", token });
+        res.json({ message: "Login successful", token, role: seller.role });
     } catch (error: any) {
         res.status(500).json({
             success: false,
