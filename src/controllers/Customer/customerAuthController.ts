@@ -2,24 +2,24 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import prisma from "../prisma";
-import sendVerificationEmail from '../utils/sendEmail';
-import { otpTemplate } from '../utils/Template/verifyEmail';
+import prisma from "../../prisma";
+import sendVerificationEmail from '../../utils/sendEmail';
+import { otpTemplate } from '../../utils/Template/verifyEmail';
 
 dotenv.config();
 
 interface AuthRequest extends Request {
-    user?: any;
+    customer?: any;
 }
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerCustomer = async (req: Request, res: Response) => {
     try {
-        const { name, email, password, otp } = req.body;
+        const { email, password, otp, firstName, middleName = "", lastName = "" } = req.body;
 
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
+        const existingCustomer = await prisma.customer.findUnique({ where: { email } });
+        if (existingCustomer) {
             return res.status(400).json({ error: "Email already registered" });
         }
 
@@ -52,40 +52,38 @@ export const registerUser = async (req: Request, res: Response) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await prisma.user.create({
-            data: { name, email, password: hashedPassword },
+        const newCustomer = await prisma.customer.create({
+            data: { firstName, middleName, lastName, email, password: hashedPassword },
         });
 
-        const profile = await prisma.profile.create({
-            data: { userId: newUser.id, gender: "Not Specified", profilePhoto: "" },
+        const profile = await prisma.customerProfile.create({
+            data: { customerId: newCustomer.id },
         });
 
-        return res.status(201).json({ message: "User registered successfully", user: newUser });
+        return res.status(201).json({ message: "Customer registered successfully", customer: newCustomer });
     } catch (error) {
         console.error("Registration error:", error);
-        return res.status(500).json({ error: "Error registering user" });
+        return res.status(500).json({ error: "Error registering Customer" });
     }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginCustomer = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        console.log("hello");
 
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return res.status(400).json({ error: "Invalid email or password" });
+        const customer = await prisma.customer.findUnique({ where: { email } });
+        if (!customer) return res.status(400).json({ error: "Invalid email or password" });
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, customer.password);
         if (!isMatch) return res.status(400).json({ error: "Invalid email or password" });
 
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1h" });
-        console.log(token);
+        const token = jwt.sign({ customerId: customer.id }, JWT_SECRET, { expiresIn: "1h" });
 
         res.cookie("token", token, { httpOnly: true });
 
         res.setHeader("Authorization", `Bearer ${token}`);
 
-        res.json({ message: "Login successful", token, user: user });
+        res.json({ message: "Login successful", token });
     } catch (error: any) {
         res.status(500).json({
             success: false,
@@ -95,39 +93,32 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 };
 
-export const createOtp = async (req: Request, res: Response): Promise<Response> => {
+export const createCustomerOtp = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { email } = req.body;
 
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (user) {
-            return res.status(409).json({
-                success: false,
-                message: "User already exists! Cannot create OTP."
-            });
+        const existingCustomer = await prisma.customer.findUnique({ where: { email } });
+        if (existingCustomer) {
+            return res.status(400).json({ error: "Email already registered" });
         }
 
-        // Generate a 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000);
 
         const html = otpTemplate(otp);
         const subject = "OTP Verification Code at Wezire-Shop";
         const payload = { subject, html };
 
-        // Calculate OTP expiry (10 minutes from now)
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-        // Save OTP in database
         await prisma.otp.create({
             data: { otp, email, expiresAt }
         });
 
-        // Send OTP email
         await sendVerificationEmail(email, payload);
 
         return res.status(200).json({
             success: true,
-            message: "OTP successfully sent to user!"
+            message: "OTP successfully sent to Customer!"
         });
     } catch (error: any) {
         console.error("Error creating OTP:", error);
@@ -139,20 +130,23 @@ export const createOtp = async (req: Request, res: Response): Promise<Response> 
     }
 };
 
-export const getUserDetails = async (req: AuthRequest, res: Response): Promise<Response> => {
+export const getCustomerDetails = async (req: AuthRequest, res: Response): Promise<Response> => {
     try {
-        const { userId } = req.user;
-        const userDetails = await prisma.user.findFirst({
-            where: { id: userId }, select: {
+        const { customerId } = req.customer;
+        const customerDetails = await prisma.customer.findFirst({
+            where: { id: customerId }, select: {
                 id: true,
-                name: true,
+                firstName: true,
+                middleName: true,
+                lastName: true,
                 email: true,
                 role: true,
                 profile: true,
-                orders: true
+                transactions: true,
+                orders: true,
             }
         });
-        if (!userDetails) {
+        if (!customerDetails) {
             return res.status(500).json({
                 success: false,
                 message: "Something Went Wrong with Auth Token"
@@ -160,25 +154,25 @@ export const getUserDetails = async (req: AuthRequest, res: Response): Promise<R
         }
         return res.status(200).json({
             success: true,
-            message: "User Details Successfully Retrieved!",
-            userDetail: userDetails
+            message: "Customer Details Successfully Retrieved!",
+            customerDetails: customerDetails
         })
     }
     catch (e: any) {
         return res.status(500).json({
             success: false,
-            message: "Error while fetching User Data!",
+            message: "Error while fetching Customer Data!",
             error: e.message
         })
     }
 }
 
-export const logoutUser = async (req: Request, res: Response): Promise<Response> => {
+export const logoutCustomer = async (req: Request, res: Response): Promise<Response> => {
     try {
         res.clearCookie("token");
         return res.status(200).json({
             success: true,
-            message: "User Successfully Logged Out!"
+            message: "Customer Successfully Logged Out!"
         })
     }
     catch (e: any) {
@@ -190,27 +184,30 @@ export const logoutUser = async (req: Request, res: Response): Promise<Response>
     }
 }
 
-export const deleteUser = async (req: AuthRequest, res: Response): Promise<Response> => {
+export const deleteCustomer = async (req: AuthRequest, res: Response): Promise<Response> => {
     try {
-        const { userId } = req.user;
-        const user = await prisma.user.delete({
-            where: { id: userId }
+        const { customerId } = req.customer;
+        const customer = await prisma.customer.findUnique({
+            where: { id: customerId }
         });
-        if (!user) {
+        if (!customer) {
             return res.status(500).json({
                 success: false,
-                message: "Something Went Wrong while Deleting User!"
+                message: "Something Went Wrong with Auth Token"
             })
         }
+        await prisma.customer.delete({
+            where: { id: customerId }
+        });
         return res.status(200).json({
             success: true,
-            message: "User Successfully Deleted!"
+            message: "Customer Successfully Deleted!"
         })
     }
     catch (e: any) {
         return res.status(500).json({
             success: false,
-            message: "Error while Deleting User!",
+            message: "Error while Deleting Customer!",
             error: e.message
         })
     }

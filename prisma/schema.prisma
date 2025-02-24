@@ -35,10 +35,10 @@ model Customer {
 
 model CustomerProfile {
   id           String   @id @default(uuid())
-  gender       String
-  profilePhoto String
-  userId       String   @unique
-  user         Customer @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gender       String?
+  profilePhoto String?
+  customerId   String   @unique
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model Seller {
@@ -55,17 +55,17 @@ model Seller {
 }
 
 model SellerProfile {
-  id           String @id @default(uuid())
-  gender       String
-  profilePhoto String
-  userId       String @unique
-  user         Seller @relation(fields: [userId], references: [id], onDelete: Cascade)
-  address      String
-  shopDetails  String
-  rating       Float
-  totalSales   Int
-  totalIncome  Float
-  about        String
+  id           String  @id @default(uuid())
+  gender       String?
+  profilePhoto String?
+  sellerId     String  @unique
+  seller       Seller  @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  address      String?
+  shopDetails  String?
+  rating       Float?
+  totalSales   Int?
+  totalIncome  Float?
+  about        String?
 }
 
 model Product {
