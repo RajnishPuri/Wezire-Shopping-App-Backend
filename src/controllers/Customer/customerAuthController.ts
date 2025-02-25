@@ -17,7 +17,6 @@ const JWT_SECRET = process.env.JWT_SECRET as string;
 export const registerCustomer = async (req: Request, res: Response) => {
     try {
         const { email, password, otp, firstName, middleName = "", lastName = "" } = req.body;
-        console.log(req.body);
 
         const existingCustomer = await prisma.customer.findUnique({ where: { email } });
         if (existingCustomer) {
@@ -64,7 +63,6 @@ export const registerCustomer = async (req: Request, res: Response) => {
 
         return res.status(201).json({ message: "Customer registered successfully", customer: newCustomer });
     } catch (error) {
-        console.error("Registration error:", error);
         return res.status(500).json({ error: "Error registering Customer" });
     }
 };
@@ -101,7 +99,6 @@ export const loginCustomer = async (req: Request, res: Response) => {
 export const createCustomerOtp = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { email } = req.body;
-        console.log(req.body);
 
         const existingCustomer = await prisma.customer.findUnique({ where: { email } });
         if (existingCustomer) {
@@ -127,7 +124,6 @@ export const createCustomerOtp = async (req: Request, res: Response): Promise<Re
             message: "OTP successfully sent to Customer!"
         });
     } catch (error: any) {
-        console.error("Error creating OTP:", error);
         return res.status(500).json({
             success: false,
             message: "Something went wrong",

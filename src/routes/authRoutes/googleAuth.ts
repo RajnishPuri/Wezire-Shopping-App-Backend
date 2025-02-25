@@ -4,7 +4,6 @@ import { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
 
-// Google Auth Routes
 router.get("/google", (req: Request, res: Response): any => {
     const role = (req.query.role as string)?.toUpperCase();
 
@@ -17,7 +16,6 @@ router.get("/google", (req: Request, res: Response): any => {
     res.redirect(authUrl);
 });
 
-// Google Auth Callback
 router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "http://localhost:5173", session: false }),
@@ -28,7 +26,6 @@ router.get(
             return res.status(400).json({ error: "Authentication failed" });
         }
 
-        // Redirect to /auth-success with token & role
         res.redirect(`http://localhost:5173/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
     }
 );

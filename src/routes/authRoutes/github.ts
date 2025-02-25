@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 
 const router = express.Router();
 
-// GitHub Auth Route
 router.get("/github", (req: Request, res: Response): any => {
     const role = (req.query.role as string)?.toUpperCase();
 
@@ -17,7 +16,6 @@ router.get("/github", (req: Request, res: Response): any => {
     res.redirect(authUrl);
 });
 
-// GitHub Callback Route
 router.get(
     "/github/callback",
     passport.authenticate("github", { failureRedirect: "http://localhost:5173", session: false }),

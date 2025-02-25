@@ -17,17 +17,14 @@ passport.use(
             passReqToCallback: true,
         },
         async (req, accessToken, refreshToken, profile, done) => {
-            const { state: role } = req.query; // Get role from state
+            const { state: role } = req.query;
             const email = profile.emails?.[0]?.value;
-            console.log("Profile:", profile);
-            console.log("Role:", role);
 
             if (!role || !email) return done(null, false);
 
             try {
                 let user;
                 if (role === "CUSTOMER") {
-                    console.log("Creating customer...");
                     user = await prisma.customer.findUnique({ where: { email } });
                     if (!user) {
                         user = await prisma.customer.create({
@@ -35,12 +32,11 @@ passport.use(
                                 firstName: profile.name?.givenName || "",
                                 lastName: profile.name?.familyName || "",
                                 email,
-                                password: "", // No password for Google users
+                                password: "",
                             },
                         });
                     }
                 } else if (role === "SELLER") {
-                    console.log("Creating seller...");
                     user = await prisma.seller.findUnique({ where: { email } });
                     if (!user) {
                         user = await prisma.seller.create({
@@ -56,7 +52,6 @@ passport.use(
                     return done(null, false);
                 }
 
-                // Generate JWT
                 const token = jwt.sign(
                     role === "CUSTOMER"
                         ? { customerId: user.id, role: "CUSTOMER" }

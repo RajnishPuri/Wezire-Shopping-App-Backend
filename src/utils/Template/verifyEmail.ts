@@ -66,8 +66,8 @@ export const otpTemplate = (otp: number) => {
 	
 	<body>
 		<div class="container">
-			<a href="https://studynotion-edtech-project.vercel.app"><img class="logo"
-					src="https://i.ibb.co/7Xyj3PC/logo.png" alt="StudyNotion Logo"></a>
+			<a href="https://razz-portfolio-seven.vercel.app/"><img class="logo"
+					src="https://drive.google.com/file/d/1Ob6_KyoPfBH6nOCKQgNThZ9y-BtjPulO/view?usp=sharing" alt="StudyNotion Logo"></a>
 			<div class="message">OTP Verification Email</div>
 			<div class="body">
 				<p>Dear User,</p>
@@ -78,7 +78,7 @@ export const otpTemplate = (otp: number) => {
 				Once your account is verified, you will have access to our platform and its features.</p>
 			</div>
 			<div class="support">If you have any questions or need assistance, please feel free to reach out to us at <a
-					href="mailto:info@studynotion.com">info@studynotion.com</a>. We are here to help!</div>
+					href="mailto:wezireinfo@gmail.com">info@wezire.com</a>. We are here to help!</div>
 		</div>
 	</body>
 	

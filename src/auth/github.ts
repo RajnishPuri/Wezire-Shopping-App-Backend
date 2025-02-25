@@ -25,20 +25,14 @@ passport.use(
             profile: Profile,
             done: (error: any, user?: any) => void
         ) => {
-            const { state: role } = req.query as { state?: string }; // Ensure query type
+            const { state: role } = req.query as { state?: string };
             let email = profile.emails?.[0]?.value || null;
-            console.log("GitHub Profile:", profile);
-            console.log("Role:", role);
 
             if (!role) return done(null, false);
 
             try {
                 let user;
                 let firstName = profile.displayName || (profile as any).login || "Unknown";
-                console.log("displayname : ", profile.displayName);
-                console.log("Login:", (profile as any).login);
-                console.log("First Name:", firstName);
-                // Fetch email if it's null
                 if (!email) {
                     const githubEmails = await axios.get<{ email: string; primary: boolean; verified: boolean }[]>(
                         "https://api.github.com/user/emails",
@@ -64,7 +58,6 @@ passport.use(
                 }
 
                 if (role.toUpperCase() === "CUSTOMER") {
-                    console.log("Finding/Creating customer...");
 
                     user = await prisma.customer.findUnique({
                         where: { email },
@@ -80,7 +73,6 @@ passport.use(
                         });
                     }
                 } else if (role.toUpperCase() === "SELLER") {
-                    console.log("Finding/Creating seller...");
 
                     user = await prisma.seller.findUnique({
                         where: { email },
@@ -110,7 +102,6 @@ passport.use(
                 return done(null, { user, token });
 
             } catch (error) {
-                console.error("GitHub Authentication Error:", error);
                 return done(error, false);
             }
 

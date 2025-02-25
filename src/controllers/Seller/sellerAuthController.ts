@@ -63,7 +63,6 @@ export const registerSeller = async (req: Request, res: Response) => {
 
         return res.status(201).json({ message: "Seller registered successfully", seller: newSeller });
     } catch (error) {
-        console.error("Registration error:", error);
         return res.status(500).json({ error: "Error registering Seller" });
     }
 };
@@ -124,7 +123,6 @@ export const createSellerOtp = async (req: Request, res: Response): Promise<Resp
             message: "OTP successfully sent to Seller!"
         });
     } catch (error: any) {
-        console.error("Error creating OTP:", error);
         return res.status(500).json({
             success: false,
             message: "Something went wrong",

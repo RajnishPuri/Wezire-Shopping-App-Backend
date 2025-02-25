@@ -6,13 +6,10 @@ import './utils/deleteExpiryOtp';
 import cookieParser from "cookie-parser";
 import customerAuthRoutes from "./routes/customerRoutes/costomerAuthRoutes";
 import sellerAuthRoutes from "./routes/sellerRoutes/sellerAuthRoutes";
-import googleAuthRoutes from "./routes/authRoutes/googleAuth"; // Import Google Auth Routes
+import googleAuthRoutes from "./routes/authRoutes/googleAuth";
 import passport from "./auth/google";
 import session from "express-session";
-//this is create by krishna 
 import githubAuthRoutes from "./routes/authRoutes/github";
-
-// Import GitHub OAuth and Hello routes
 
 
 dotenv.config();
@@ -25,26 +22,20 @@ app.use(cookieParser());
 
 app.use(
     session({
-        secret: process.env.SESSION_SECRET as string, // Ensure you have this in .env
+        secret: process.env.SESSION_SECRET as string,
         resave: false,
         saveUninitialized: true,
-        cookie: { secure: false } // Set secure: true if using HTTPS
+        cookie: { secure: false }
     })
 );
-
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-
-// Customers Routes
 app.use("/api/customer/auth", customerAuthRoutes);
 
-// Seller Routes
 app.use("/api/seller/auth", sellerAuthRoutes);
 
-// Google Auth Routes
 app.use("/auth", googleAuthRoutes);
 
 app.use("/auth", githubAuthRoutes);
