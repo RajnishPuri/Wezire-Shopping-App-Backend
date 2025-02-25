@@ -35,6 +35,11 @@ passport.use(
                                 password: "",
                             },
                         });
+                        await prisma.customerProfile.create({
+                            data: {
+                                customerId: user.id,
+                            },
+                        });
                     }
                 } else if (role === "SELLER") {
                     user = await prisma.seller.findUnique({ where: { email } });
@@ -45,6 +50,11 @@ passport.use(
                                 lastName: profile.name?.familyName || "",
                                 email,
                                 password: "",
+                            },
+                        });
+                        await prisma.sellerProfile.create({
+                            data: {
+                                sellerId: user.id,
                             },
                         });
                     }
