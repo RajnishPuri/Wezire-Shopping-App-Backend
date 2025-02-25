@@ -19,12 +19,15 @@ passport.use(
         async (req, accessToken, refreshToken, profile, done) => {
             const { state: role } = req.query; // Role is stored in state
             const email = profile.emails?.[0]?.value;
+            console.log("Profile:", profile);
+            console.log("Role:", role);
 
             if (!role || !email) return done(null, false);
 
             try {
                 let user;
                 if (role === "CUSTOMER") {
+                    console.log("Creating customer...");
                     user = await prisma.customer.findUnique({ where: { email } });
                     if (!user) {
                         user = await prisma.customer.create({
@@ -37,6 +40,7 @@ passport.use(
                         });
                     }
                 } else if (role === "SELLER") {
+                    console.log("Creating seller...");
                     user = await prisma.seller.findUnique({ where: { email } });
                     if (!user) {
                         user = await prisma.seller.create({
