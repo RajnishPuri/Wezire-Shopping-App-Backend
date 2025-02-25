@@ -74,7 +74,10 @@ export const loginCustomer = async (req: Request, res: Response) => {
         const { email, password } = req.body;
 
         const customer = await prisma.customer.findUnique({ where: { email } });
-        if (!customer) return res.status(400).json({ error: "Invalid email or password" });
+
+        if (!customer || !customer.password || typeof customer.password !== "string") {
+            return res.status(400).json({ error: "Invalid email or password" });
+        }
 
         const isMatch = await bcrypt.compare(password, customer.password);
         if (!isMatch) return res.status(400).json({ error: "Invalid email or password" });
