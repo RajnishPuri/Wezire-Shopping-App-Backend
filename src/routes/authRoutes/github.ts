@@ -18,7 +18,7 @@ router.get("/github", (req: Request, res: Response): any => {
 
 router.get(
     "/github/callback",
-    passport.authenticate("github", { failureRedirect: "http://localhost:5173", session: false }),
+    passport.authenticate("github", { failureRedirect: "https://wezire-shopping-app-frontend.vercel.app/", session: false }),
     (req: Request, res: Response): any => {
         const user = req.user as { token: string; user: { role: string } };
 
@@ -26,7 +26,7 @@ router.get(
             return res.status(400).json({ error: "Authentication failed" });
         }
 
-        res.redirect(`http://localhost:5173/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
+        res.redirect(`https://wezire-shopping-app-frontend.vercel.app//auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
     }
 );
 
