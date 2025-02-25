@@ -22,14 +22,16 @@ router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "http://localhost:5173", session: false }),
     (req: Request, res: Response): any => {
-        const role = req.query.state as string; // Retrieve role from state
+        const user = req.user as { token: string; user: { role: string } };
 
-        if (!role) {
-            return res.status(400).json({ error: "Role not found after authentication" });
+        if (!user || !user.token || !user.user.role) {
+            return res.status(400).json({ error: "Authentication failed" });
         }
 
-        res.redirect(`http://localhost:5173/${role.toLowerCase()}-dashboard`);
+        // Redirect to /auth-success with token & role
+        res.redirect(`http://localhost:5173/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
     }
 );
+
 
 export default router;

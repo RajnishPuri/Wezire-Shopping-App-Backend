@@ -17,7 +17,7 @@ passport.use(
             passReqToCallback: true,
         },
         async (req, accessToken, refreshToken, profile, done) => {
-            const { state: role } = req.query; // Role is stored in state
+            const { state: role } = req.query; // Get role from state
             const email = profile.emails?.[0]?.value;
             console.log("Profile:", profile);
             console.log("Role:", role);
@@ -59,8 +59,8 @@ passport.use(
                 // Generate JWT
                 const token = jwt.sign(
                     role === "CUSTOMER"
-                        ? { customerId: user.id }
-                        : { sellerId: user.id },
+                        ? { customerId: user.id, role: "CUSTOMER" }
+                        : { sellerId: user.id, role: "SELLER" },
                     JWT_SECRET,
                     { expiresIn: "1h" }
                 );
