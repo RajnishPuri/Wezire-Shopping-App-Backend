@@ -35,6 +35,8 @@ passport.use(
             try {
                 let user;
                 let firstName = profile.displayName || (profile as any).login || "Unknown";
+                console.log("displayname : ", profile.displayName);
+                console.log("Login:", (profile as any).login);
                 console.log("First Name:", firstName);
                 // Fetch email if it's null
                 if (!email) {
