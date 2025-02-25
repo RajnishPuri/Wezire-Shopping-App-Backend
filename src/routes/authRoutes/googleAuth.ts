@@ -3,47 +3,33 @@ import passport from "../../auth/google";
 import { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
-interface SessionData {
-    role?: string; // Add role property
-}
+
 // Google Auth Routes
-router.get(
-    "/google",
-    (req: Request, res: Response, next: NextFunction): any => {
-        const role = (req.query.role as string)?.toUpperCase(); // Ensure lowercase
-        console.log("Received role:", role);
+router.get("/google", (req: Request, res: Response): any => {
+    const role = (req.query.role as string)?.toUpperCase();
 
-        if (!role || (role !== "CUSTOMER" && role !== "SELLER")) {
-            return res.status(400).json({ error: "Invalid role" });
-        }
+    if (!role || (role !== "CUSTOMER" && role !== "SELLER")) {
+        return res.status(400).json({ error: "Invalid role" });
+    }
 
-        // Attach role to session before authentication
-        req.session = req.session || {}; // Ensure session exists
-        (req.session as { role?: string }).role = role;
+    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_CALLBACK_URL}&response_type=code&scope=email%20profile&state=${role}`;
 
-
-        next();
-    },
-    passport.authenticate("google", { scope: ["profile", "email"] })
-);
-
-
+    res.redirect(authUrl);
+});
 
 // Google Auth Callback
-router.get("/google/callback",
+router.get(
+    "/google/callback",
     passport.authenticate("google", { failureRedirect: "http://localhost:5173", session: false }),
     (req: Request, res: Response): any => {
-        const role = (req.session as { role?: string })?.role;        // Retrieve stored role
-        console.log("User role after Google auth:", role);
+        const role = req.query.state as string; // Retrieve role from state
 
         if (!role) {
             return res.status(400).json({ error: "Role not found after authentication" });
         }
 
-        // Redirect to the correct dashboard
-        res.redirect(role === "CUSTOMER" ? "/customer-dashboard" : "/seller-dashboard");
+        res.redirect(`http://localhost:5173/${role.toLowerCase()}-dashboard`);
     }
 );
-
 
 export default router;

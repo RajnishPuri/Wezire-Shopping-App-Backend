@@ -20,11 +20,13 @@ app.use(cookieParser());
 
 app.use(
     session({
-        secret: process.env.JWT_SECRET as string,
+        secret: process.env.SESSION_SECRET as string, // Ensure you have this in .env
         resave: false,
         saveUninitialized: true,
+        cookie: { secure: false } // Set secure: true if using HTTPS
     })
 );
+
 
 app.use(passport.initialize());
 app.use(passport.session());

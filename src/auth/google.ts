@@ -3,12 +3,9 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { Response } from "express";
-
 
 dotenv.config();
 const prisma = new PrismaClient();
-
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 passport.use(
@@ -16,11 +13,11 @@ passport.use(
         {
             clientID: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            callbackURL: "https://wezire-shopping-app-backend.onrender.com/auth/google/callback",
+            callbackURL: process.env.GOOGLE_CALLBACK_URL!,
             passReqToCallback: true,
         },
         async (req, accessToken, refreshToken, profile, done) => {
-            const { role } = req.query; // Get role from query params
+            const { state: role } = req.query; // Role is stored in state
             const email = profile.emails?.[0]?.value;
 
             if (!role || !email) return done(null, false);
@@ -56,21 +53,15 @@ passport.use(
                 }
 
                 // Generate JWT
-                if (role === "CUSTOMER") {
-                    const token = jwt.sign(
-                        { customerId: user.id }, JWT_SECRET, { expiresIn: "1h" }
-                    );
-                    return done(null, { user, token });
-                }
-                else if (role === "SELLER") {
-                    const token = jwt.sign(
-                        { sellerId: user.id }, JWT_SECRET, { expiresIn: "1h" }
-                    );
-                    return done(null, { user, token });
-                }
-                else {
-                    return done(null, false);
-                }
+                const token = jwt.sign(
+                    role === "CUSTOMER"
+                        ? { customerId: user.id }
+                        : { sellerId: user.id },
+                    JWT_SECRET,
+                    { expiresIn: "1h" }
+                );
+
+                return done(null, { user, token });
             } catch (error) {
                 return done(error, false);
             }
