@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { Request } from "express";
+import axios from "axios";
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -25,19 +26,47 @@ passport.use(
             done: (error: any, user?: any) => void
         ) => {
             const { state: role } = req.query as { state?: string }; // Ensure query type
-            const email = profile.emails?.[0]?.value;
+            let email = profile.emails?.[0]?.value || null;
             console.log("GitHub Profile:", profile);
             console.log("Role:", role);
 
-            if (!role || !email) return done(null, false);
+            if (!role) return done(null, false);
 
             try {
                 let user;
-                const firstName = profile.displayName || profile.username || "Unknown"; // ✅ Ensure a string value
+                let firstName = profile.displayName || (profile as any).login || "Unknown";
+
+                // Fetch email if it's null
+                if (!email) {
+                    const githubEmails = await axios.get<{ email: string; primary: boolean; verified: boolean }[]>(
+                        "https://api.github.com/user/emails",
+                        {
+                            headers: {
+                                Authorization: `token ${_accessToken}`,
+                            },
+                        }
+                    );
+
+                    const primaryEmail = githubEmails.data.find(
+                        (emailObj: { email: string; primary: boolean; verified: boolean }) =>
+                            emailObj.primary && emailObj.verified
+                    );
+
+                    if (primaryEmail) {
+                        email = primaryEmail.email;
+                    }
+                }
+
+                if (!email) {
+                    return done(null, false);
+                }
 
                 if (role.toUpperCase() === "CUSTOMER") {
-                    console.log("Creating customer...");
-                    user = await prisma.customer.findUnique({ where: { email } });
+                    console.log("Finding/Creating customer...");
+
+                    user = await prisma.customer.findUnique({
+                        where: { email },
+                    });
 
                     if (!user) {
                         user = await prisma.customer.create({
@@ -49,8 +78,11 @@ passport.use(
                         });
                     }
                 } else if (role.toUpperCase() === "SELLER") {
-                    console.log("Creating seller...");
-                    user = await prisma.seller.findUnique({ where: { email } });
+                    console.log("Finding/Creating seller...");
+
+                    user = await prisma.seller.findUnique({
+                        where: { email },
+                    });
 
                     if (!user) {
                         user = await prisma.seller.create({
@@ -74,9 +106,12 @@ passport.use(
                 );
 
                 return done(null, { user, token });
+
             } catch (error) {
+                console.error("GitHub Authentication Error:", error);
                 return done(error, false);
             }
+
         }
     )
 );
