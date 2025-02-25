@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "Rajnish Puri",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/RajnishPuri/Wezire-Shopping-App-Backend/issues"
   },
