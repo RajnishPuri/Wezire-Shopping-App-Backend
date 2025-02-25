@@ -1,32 +1,27 @@
 {
   "name": "wezire-shopping-app-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Wezire Shopping App Backend",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RajnishPuri/Wezire-Shopping-App-Backend.git"
+    "url": "https://github.com/RajnishPuri/Wezire-Shopping-App-Backend.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Rajnish Puri",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/RajnishPuri/Wezire-Shopping-App-Backend/issues"
   },
   "homepage": "https://github.com/RajnishPuri/Wezire-Shopping-App-Backend#readme",
   "dependencies": {
     "@prisma/client": "^6.4.1",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/express-session": "^1.18.1",
-    "@types/mongodb": "^4.0.7",
-    "@types/nodemailer": "^6.4.17",
-    "@types/passport": "^1.0.17",
-    "@types/passport-google-oauth20": "^2.0.16",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -44,11 +39,17 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
     "@types/express-validator": "^2.20.33",
     "@types/jsonwebtoken": "^9.0.8",
+    "@types/mongodb": "^4.0.7",
+    "@types/nodemailer": "^6.4.17",
     "@types/node": "^22.13.4",
+    "@types/passport": "^1.0.17",
+    "@types/passport-google-oauth20": "^2.0.16",
     "nodemon": "^3.1.9",
     "prisma": "^6.4.1",
     "ts-node": "^10.9.2",
