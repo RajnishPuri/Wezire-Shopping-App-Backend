@@ -35,7 +35,7 @@ passport.use(
             try {
                 let user;
                 let firstName = profile.displayName || (profile as any).login || "Unknown";
-
+                console.log("First Name:", firstName);
                 // Fetch email if it's null
                 if (!email) {
                     const githubEmails = await axios.get<{ email: string; primary: boolean; verified: boolean }[]>(
