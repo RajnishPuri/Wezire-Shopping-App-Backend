@@ -3,9 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import prisma from "./prisma";
 import './utils/deleteExpiryOtp';
-import cookieParser from 'cookie-parser'
+import cookieParser from "cookie-parser";
 import customerAuthRoutes from "./routes/customerRoutes/costomerAuthRoutes";
 import sellerAuthRoutes from "./routes/sellerRoutes/sellerAuthRoutes";
+import googleAuthRoutes from "./routes/authRoutes/googleAuth"; // Import Google Auth Routes
+import passport from "./auth/google";
+import session from "express-session";
 
 dotenv.config();
 
@@ -15,11 +18,25 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET as string,
+        resave: false,
+        saveUninitialized: true,
+    })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Customers Routes
 app.use("/api/customer/auth", customerAuthRoutes);
 
 // Seller Routes
 app.use("/api/seller/auth", sellerAuthRoutes);
+
+// Google Auth Routes
+app.use("/auth", googleAuthRoutes);
 
 app.get("/", (req, res) => {
     res.send("Shopping App Backend is Running 🚀");

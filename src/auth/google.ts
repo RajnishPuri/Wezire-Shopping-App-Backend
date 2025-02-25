@@ -1,0 +1,89 @@
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import { Response } from "express";
+
+
+dotenv.config();
+const prisma = new PrismaClient();
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
+
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            callbackURL: "/auth/google/callback",
+            passReqToCallback: true,
+        },
+        async (req, accessToken, refreshToken, profile, done) => {
+            const { role } = req.query; // Get role from query params
+            const email = profile.emails?.[0]?.value;
+
+            if (!role || !email) return done(null, false);
+
+            try {
+                let user;
+                if (role === "CUSTOMER") {
+                    user = await prisma.customer.findUnique({ where: { email } });
+                    if (!user) {
+                        user = await prisma.customer.create({
+                            data: {
+                                firstName: profile.name?.givenName || "",
+                                lastName: profile.name?.familyName || "",
+                                email,
+                                password: "", // No password for Google users
+                            },
+                        });
+                    }
+                } else if (role === "SELLER") {
+                    user = await prisma.seller.findUnique({ where: { email } });
+                    if (!user) {
+                        user = await prisma.seller.create({
+                            data: {
+                                firstName: profile.name?.givenName || "",
+                                lastName: profile.name?.familyName || "",
+                                email,
+                                password: "",
+                            },
+                        });
+                    }
+                } else {
+                    return done(null, false);
+                }
+
+                // Generate JWT
+                if (role === "CUSTOMER") {
+                    const token = jwt.sign(
+                        { customerId: user.id }, JWT_SECRET, { expiresIn: "1h" }
+                    );
+                    return done(null, { user, token });
+                }
+                else if (role === "SELLER") {
+                    const token = jwt.sign(
+                        { sellerId: user.id }, JWT_SECRET, { expiresIn: "1h" }
+                    );
+                    return done(null, { user, token });
+                }
+                else {
+                    return done(null, false);
+                }
+            } catch (error) {
+                return done(error, false);
+            }
+        }
+    )
+);
+
+passport.serializeUser((user: any, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user: any, done) => {
+    done(null, user);
+});
+
+export default passport;
