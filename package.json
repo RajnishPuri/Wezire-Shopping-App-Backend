@@ -22,6 +22,9 @@
   "homepage": "https://github.com/RajnishPuri/Wezire-Shopping-App-Backend#readme",
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "@types/axios": "^0.9.36",
+    "@types/passport-github2": "^1.2.9",
+    "axios": "^1.7.9",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -34,6 +37,7 @@
     "mongoose": "^8.10.1",
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.13.3"
   },
@@ -46,8 +50,8 @@
     "@types/express-validator": "^2.20.33",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/mongodb": "^4.0.7",
-    "@types/nodemailer": "^6.4.17",
     "@types/node": "^22.13.4",
+    "@types/nodemailer": "^6.4.17",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.16",
     "nodemon": "^3.1.9",
