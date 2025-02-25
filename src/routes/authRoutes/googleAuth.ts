@@ -31,7 +31,7 @@ router.get(
 
 // Google Auth Callback
 router.get("/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login", session: false }),
+    passport.authenticate("google", { failureRedirect: "http://localhost:5173", session: false }),
     (req: Request, res: Response): any => {
         const role = (req.session as { role?: string })?.role;        // Retrieve stored role
         console.log("User role after Google auth:", role);
