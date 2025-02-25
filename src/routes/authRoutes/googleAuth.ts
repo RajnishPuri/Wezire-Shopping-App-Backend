@@ -10,7 +10,7 @@ interface SessionData {
 router.get(
     "/google",
     (req: Request, res: Response, next: NextFunction): any => {
-        const role = (req.query.role as string)?.toLowerCase(); // Ensure lowercase
+        const role = (req.query.role as string)?.toUpperCase(); // Ensure lowercase
         console.log("Received role:", role);
 
         if (!role || (role !== "CUSTOMER" && role !== "SELLER")) {
