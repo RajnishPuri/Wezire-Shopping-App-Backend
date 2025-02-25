@@ -71,6 +71,11 @@ passport.use(
                                 email,
                             },
                         });
+                        await prisma.customerProfile.create({
+                            data: {
+                                customerId: user.id,
+                            },
+                        });
                     }
                 } else if (role.toUpperCase() === "SELLER") {
 
@@ -84,6 +89,11 @@ passport.use(
                                 firstName,
                                 lastName: "",
                                 email,
+                            },
+                        });
+                        await prisma.sellerProfile.create({
+                            data: {
+                                sellerId: user.id,
                             },
                         });
                     }
