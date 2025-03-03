@@ -32,6 +32,7 @@ model Customer {
   profile      CustomerProfile?
   orders       Order[]
   transactions Transaction[]
+  createdAt    DateTime       @default(now())
 }
 
 model CustomerProfile {
@@ -74,10 +75,12 @@ model Product {
   id         String      @id @default(uuid())
   name       String
   price      Float
+  description String?
   stock      Int
   sellerId   String
   seller     Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
+  images     String[]
 }
 
 model Order {

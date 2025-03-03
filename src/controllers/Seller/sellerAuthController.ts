@@ -16,6 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const registerSeller = async (req: Request, res: Response) => {
     try {
+        console.log("hello")
         const { email, password, otp, firstName, middleName = "", lastName = "" } = req.body;
 
         const existingSeller = await prisma.seller.findUnique({ where: { email } });
@@ -97,12 +98,14 @@ export const loginSeller = async (req: Request, res: Response) => {
 
 export const createSellerOtp = async (req: Request, res: Response): Promise<Response> => {
     try {
+        console.log("hello")
         const { email } = req.body;
 
         const existingSeller = await prisma.seller.findUnique({ where: { email } });
         if (existingSeller) {
             return res.status(400).json({ error: "Email already registered" });
         }
+        console.log("yes")
 
         const otp = Math.floor(100000 + Math.random() * 900000);
 
