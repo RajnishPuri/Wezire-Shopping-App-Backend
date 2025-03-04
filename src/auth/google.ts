@@ -67,7 +67,7 @@ passport.use(
                         ? { customerId: user.id, role: "CUSTOMER" }
                         : { sellerId: user.id, role: "SELLER" },
                     JWT_SECRET,
-                    { expiresIn: "1h" }
+                    { expiresIn: "7d" }
                 );
 
                 return done(null, { user, token });

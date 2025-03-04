@@ -13,6 +13,7 @@ import githubAuthRoutes from "./routes/authRoutes/github";
 import { cloudinaryConnect } from "./config/cloudinaryConfig";
 import sellerProductRoutes from "./routes/sellerRoutes/sellerProductRoutes";
 import fileUpload from "express-fileupload";
+import CustomerProductRoutes from "./routes/customerRoutes/customerProductRoutes";
 
 
 dotenv.config();
@@ -47,8 +48,11 @@ app.use("/auth", githubAuthRoutes);
 // Seller Routes
 app.use("/api/seller/product", sellerProductRoutes);
 
+// Customer Routes
+// app.use("/api/customer", CustomerProductRoutes);
 
-
+// All User Routes
+app.use("/api/product", CustomerProductRoutes);
 
 app.get("/", (req, res) => {
     res.send("Shopping App Backend is Running 🚀");
