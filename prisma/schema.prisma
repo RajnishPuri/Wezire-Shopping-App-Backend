@@ -32,7 +32,7 @@ model Customer {
   profile      CustomerProfile?
   orders       Order[]
   transactions Transaction[]
-  createdAt    DateTime       @default(now())
+  createdAt    DateTime         @default(now())
 }
 
 model CustomerProfile {
@@ -72,15 +72,19 @@ model SellerProfile {
 }
 
 model Product {
-  id         String      @id @default(uuid())
-  name       String
-  price      Float
+  id          String      @id @default(uuid())
+  name        String
+  price       Float
   description String?
-  stock      Int
-  sellerId   String
-  seller     Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  orderItems OrderItem[]
-  images     String[]
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brandId     String?
+  brand       Brand?      @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  stock       Int
+  sellerId    String
+  seller      Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+  images      String[]
 }
 
 model Order {
@@ -144,4 +148,16 @@ model Otp {
   email     String
   createdAt DateTime @default(now())
   expiresAt DateTime @default(dbgenerated("(now() + interval '10 minutes')"))
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Brand {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
 }
