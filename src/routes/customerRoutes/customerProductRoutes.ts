@@ -1,11 +1,13 @@
 import express from 'express';
 
-import { getAllProducts, getFilterProduct } from '../../controllers/Customer/costomerProductController';
+import { getAllProducts, searchItemList } from '../../controllers/Customer/costomerProductController';
 import { authenticateCustomer } from '../../middlewares/userAuth.middleware';
 
 const router = express.Router();
 
-router.get('/getAllProducts', authenticateCustomer as any, getAllProducts as any);
-router.post('/getFilterProduct', authenticateCustomer as any, getFilterProduct as any);
+router.post('/getAllProducts', getAllProducts as any);
+// router.post('/getFilterProduct', authenticateCustomer as any, getFilterProduct as any);
+router.get('/searchItemList', searchItemList as any);
+// router.get('/searchProducts', searchProducts as any);
 
 export default router;
