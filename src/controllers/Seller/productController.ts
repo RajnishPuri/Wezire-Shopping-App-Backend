@@ -12,17 +12,74 @@ interface AuthRequest extends Request {
 
 export const createProduct = async (req: AuthRequest, res: Response) => {
     try {
-        const { name, description, price, stock, category, brand } = req.body;
+        var { name, description, price, stock, category, brand } = req.body;
         const { sellerId } = req.seller;
         const FOLDER_NAME = process.env.FOLDER_NAME || "products";
 
         const productImages = req.files?.productImages;
 
-        console.log(name, description, price, stock, sellerId, productImages, FOLDER_NAME);
-
         if (!name || !price || !stock || !category || !brand) {
             return res.status(400).json({ message: "Name, Price, Category, Brand and Stock are required" });
         }
+
+        category = category.toUpperCase();
+        brand = brand.toUpperCase();
+
+        var categoryId;
+        var brandId;
+
+        if (category) {
+            try {
+                const existingCategory = await prisma.category.findUnique({
+                    where: {
+                        name: category,
+                    },
+                });
+
+                if (!existingCategory) {
+                    const newCategory = await prisma.category.create({
+                        data: {
+                            name
+                        },
+                    });
+                    categoryId = newCategory.id;
+                }
+                else {
+                    categoryId = existingCategory.id;
+                }
+
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        if (brand) {
+            try {
+                const existingBrand = await prisma.brand.findUnique({
+                    where: {
+                        name: brand,
+                    },
+                });
+                if (!existingBrand) {
+                    const newBrand = await prisma.brand.create({
+                        data: {
+                            name
+                        },
+                    });
+                    brandId = newBrand.id;
+                }
+                else {
+                    brandId = existingBrand.id;
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        // console.log(name, description, price, stock, sellerId, productImages, FOLDER_NAME);
+
 
         let imageUrls: string[] = [];
 
@@ -48,8 +105,8 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
                 description,
                 price: parseFloat(price),
                 stock: parseInt(stock, 10),
-                category,
-                brand,
+                categoryId,
+                brandId,
                 images: imageUrls,
                 sellerId,
             },
@@ -162,63 +219,6 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const createCategory = async (req: Request, res: Response) => {
-    try {
-        var { name } = req.body;
-        name = name.toUpperCase();
-
-
-        const existingCategory = await prisma.category.findUnique({
-            where: {
-                name,
-            },
-        });
-
-        if (existingCategory) {
-            return res.status(400).json({ message: "Category already exists" });
-        }
-
-        const category = await prisma.category.create({
-            data: {
-                name
-            },
-        });
-
-        return res.status(201).json({ message: "Category created successfully", category });
-
-    }
-    catch (error) {
-        console.error("Error creating category:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-};
-
-export const createBrand = async (req: Request, res: Response) => {
-    try {
-        var { name } = req.body;
-        name = name.toUpperCase();
-        const existingBrand = await prisma.brand.findUnique({
-            where: {
-                name,
-            },
-        });
-        if (existingBrand) {
-            return res.status(400).json({ message: "Brand already exists" });
-        }
-
-        const brand = await prisma.brand.create({
-            data: {
-                name,
-            },
-        });
-        return res.status(201).json({ message: "Brand created successfully", brand });
-    }
-    catch (error) {
-        console.error("Error creating brand:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
 export const getAllCategory = async (req: Request, res: Response) => {
     try {
         const categories = await prisma.category.findMany();
@@ -237,6 +237,64 @@ export const getAllBrand = async (req: Request, res: Response) => {
     }
     catch (error) {
         console.error("Error fetching brands:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getCategorySearch = async (req: Request, res: Response) => {
+    try {
+        var categoryName = req.query.categoryName as string;
+        console.log(categoryName);
+        categoryName = categoryName.toUpperCase();
+        if (!categoryName) {
+            return res.status(400).json({ message: "Category name is required" });
+        }
+        const categories = await prisma.category.findMany({
+            where: {
+                name: {
+                    contains: categoryName,
+                    mode: 'insensitive',
+                },
+            },
+            take: 10,
+        });
+
+        if (!categories) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+        return res.status(200).json({ message: "Category fetched successfully", categories });
+    }
+    catch (error) {
+        console.error("Error fetching category:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getBrandSearch = async (req: Request, res: Response) => {
+    try {
+        var brandName = req.query.brandName as string;
+        console.log(brandName);
+        brandName = brandName.toUpperCase();
+        if (!brandName) {
+            return res.status(400).json({ message: "Brand name is required" });
+        }
+        const brands = await prisma.brand.findMany({
+            where: {
+                name: {
+                    contains: brandName,
+                    mode: 'insensitive',
+                },
+            },
+            take: 10,
+        });
+        console.log(brands);
+        if (!brands) {
+            return res.status(404).json({ message: "Brand not found" });
+        }
+        return res.status(200).json({ message: "Brand fetched successfully", brands });
+    }
+    catch (error) {
+        console.error("Error fetching brand:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
