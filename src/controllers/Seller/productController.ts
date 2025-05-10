@@ -3,6 +3,8 @@ import prisma from "../../prisma";
 import { uploadImageToCloudinary } from "../../utils/cloudinary";
 import dotenv from "dotenv";
 import { UploadedFile } from "express-fileupload";
+import { Console } from "console";
+import { Prisma } from "@prisma/client";
 
 dotenv.config();
 
@@ -298,3 +300,118 @@ export const getBrandSearch = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+
+
+
+export const getMyProducts = async (req: AuthRequest, res: Response) => {
+    try {
+        const { sellerId } = req.seller;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
+        const searchItemRaw = req.query.searchItem as string;
+        const isFilteredRaw = req.query.isFiltered as string;
+
+        const searchItem = searchItemRaw && searchItemRaw !== "undefined" ? searchItemRaw : undefined;
+        const isFiltered = isFilteredRaw === "true";
+
+        const where: any = {
+            sellerId
+        };
+
+
+
+        if (isFiltered) {
+            const { category, brand, price, inStock } = req.body;
+
+            if (category) {
+                where.category = { name: category };
+            }
+
+            if (brand) {
+                where.brand = { name: brand };
+            }
+
+            if (price !== undefined && !isNaN(parseFloat(price))) {
+                where.price = {
+                    gte: 0,
+                    lte: parseFloat(price)
+                };
+            }
+
+            if (inStock === "false") {
+                where.stock = { equals: 0 };
+            }
+
+            if (searchItem) {
+                where.name = {
+                    contains: searchItem,
+                    mode: "insensitive"
+                };
+            }
+
+            const filterProducts = await prisma.product.findMany({
+                where,
+                skip,
+                take: limit
+            });
+
+            const totalProducts = await prisma.product.count({ where });
+
+            return res.status(200).json({
+                products: filterProducts,
+                totalProducts
+            });
+        }
+
+        // Handle search-only (not filtered)
+        if (searchItem) {
+            const searchWhere: Prisma.ProductWhereInput = {
+                sellerId: req.seller.sellerId,
+                name: {
+                    contains: searchItem,
+                    mode: Prisma.QueryMode.insensitive,
+                },
+            };
+
+            const products = await prisma.product.findMany({
+                where: searchWhere,
+                skip,
+                take: limit
+            });
+
+            const totalProducts = await prisma.product.count({
+                where: searchWhere
+            });
+
+
+            return res.status(200).json({
+                products,
+                totalProducts
+            });
+        }
+
+        // Default: fetch all without filters or search
+        const products = await prisma.product.findMany({
+            where: { sellerId },
+            skip,
+            take: limit
+        });
+
+        const totalProducts = await prisma.product.count({
+            where: { sellerId }
+        });
+
+        console.log(products);
+
+        return res.status(200).json({
+            products,
+            totalProducts
+        });
+
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
