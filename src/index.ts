@@ -14,6 +14,7 @@ import { cloudinaryConnect } from "./config/cloudinaryConfig";
 import sellerProductRoutes from "./routes/sellerRoutes/sellerProductRoutes";
 import fileUpload from "express-fileupload";
 import CustomerProductRoutes from "./routes/customerRoutes/customerProductRoutes";
+import paymentRoutes from './routes/Payment/payment';
 
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use("/api/customer/auth", customerAuthRoutes);
 app.use("/api/seller/auth", sellerAuthRoutes);
 app.use("/auth", googleAuthRoutes);
 app.use("/auth", githubAuthRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Seller Routes
 app.use("/api/seller/product", sellerProductRoutes);
