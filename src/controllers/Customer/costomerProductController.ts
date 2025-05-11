@@ -147,6 +147,36 @@ export const searchItemList = async (req: Request, res: Response) => {
     }
 };
 
+export const getProductById = async (req: Request, res: Response) => {
+    try {
+        const productId = req.params.id;
+
+        if (!productId) {
+            return res.status(400).json({ message: "Product ID is required." });
+        }
+
+        const product = await prisma.product.findUnique({
+            where: {
+                id: productId,  // Make sure this is a string and not undefined
+            },
+            include: {
+                category: true,
+                brand: true,
+            },
+
+        });
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        console.log(product);
+        return res.status(200).json({ product });
+    } catch (error) {
+        console.error("Error fetching product by ID:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 
 
 

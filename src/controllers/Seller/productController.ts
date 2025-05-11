@@ -301,8 +301,6 @@ export const getBrandSearch = async (req: Request, res: Response) => {
     }
 }
 
-
-
 export const getMyProducts = async (req: AuthRequest, res: Response) => {
     try {
         const { sellerId } = req.seller;
@@ -415,3 +413,5 @@ export const getMyProducts = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
+
