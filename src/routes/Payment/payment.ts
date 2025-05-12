@@ -1,8 +1,8 @@
-const express = require('express');
-const Razorpay = require('razorpay');  // Import Razorpay
+import express from "express";
+import Razorpay from "razorpay";  // Import Razorpay
 const router = express.Router();
-const verifyRazorpaySignature = require('../../utils/razorpay').verifyRazorpaySignature;
-const prisma = require('../../prisma');
+import { verifyRazorpaySignature } from "../../utils/razorpay"; // Import the signature verification function
+import prisma from "../../prisma";
 
 // Initialize Razorpay with your credentials
 const razorpay = new Razorpay({
@@ -54,52 +54,94 @@ router.post("/verify-payment", async (req: any, res: any) => {
         deliveryAddress: string;
     } = req.body;
 
-    const isValid = verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+    console.log("razorpayOrderId:", razorpayOrderId);
+    console.log("razorpayPaymentId:", razorpayPaymentId);
+    console.log("razorpaySignature:", razorpaySignature);
+    console.log("customerId:", customerId);
+    console.log("cartItems:", cartItems);
+    console.log("deliveryAddress:", deliveryAddress);
 
+    const isValid = verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
     if (!isValid) return res.status(400).json({ message: "Invalid signature" });
 
     try {
-        const orderTotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        console.log("Grouping cart items by seller...");
+        const itemsBySeller = cartItems.reduce((acc: Record<string, CartItem[]>, item) => {
+            if (!acc[item.sellerId]) acc[item.sellerId] = [];
+            acc[item.sellerId].push(item);
+            return acc;
+        }, {});
 
-        const order = await prisma.order.create({
-            data: {
-                customerId,
-                orderTotal,
-                deliveryAddress,
-                orderStatus: "CONFIRMED",
-                orderItems: {
-                    create: cartItems.map(item => ({
-                        productId: item.id,
-                        sellerId: item.sellerId,
-                        quantity: item.quantity,
-                        unitPrice: item.price,
-                        totalPrice: item.quantity * item.price
-                    }))
-                },
-                orderPayments: {
-                    create: {
-                        transactionId: razorpayPaymentId,
-                        paymentMethod: "Razorpay",
-                        paymentStatus: "Success",
-                        amount: orderTotal
+        console.log("Grouped cart items by seller:", itemsBySeller);
+
+        const createdOrders = [];
+
+        for (const sellerId in itemsBySeller) {
+            const sellerItems = itemsBySeller[sellerId];
+            const orderTotal = sellerItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            console.log(`Processing order for seller ${sellerId} with total ${orderTotal}`);
+            // console.log("Creating order:", prisma.order);
+            // Create order with orderItems and orderPayment only
+            const order = await prisma.order.create({
+                data: {
+                    customerId,
+                    deliveryAddress,
+                    orderStatus: "CONFIRMED",
+                    orderTotal,
+                    orderItems: {
+                        create: sellerItems.map(item => ({
+                            productId: item.id,
+                            sellerId: item.sellerId,
+                            quantity: item.quantity,
+                            unitPrice: item.price,
+                            totalPrice: item.price * item.quantity
+                        }))
+                    },
+                    orderPayments: {
+                        create: {
+                            transactionId: `${razorpayPaymentId}-${sellerId}`,
+                            paymentMethod: "Razorpay",
+                            paymentStatus: "Success",
+                            amount: orderTotal
+                        }
                     }
                 },
-                Transaction: {
-                    create: {
-                        transactionId: razorpayPaymentId,
-                        paymentMethod: "Razorpay",
-                        paymentStatus: "Success",
-                        amount: orderTotal,
-                        customerId
-                    }
+                include: { orderItems: true }
+            });
+
+            // Create transaction
+            await prisma.transaction.create({
+                data: {
+                    transactionId: `${razorpayPaymentId}-${sellerId}`,
+                    paymentMethod: "Razorpay",
+                    paymentStatus: "Success",
+                    amount: orderTotal,
+                    customerId,
+                    orderId: order.id
                 }
-            },
-            include: { orderItems: true }
-        });
+            });
 
-        res.status(200).json({ message: "Order placed successfully", order });
+            for (const item of sellerItems) {
+                await prisma.product.update({
+                    where: { id: item.id },
+                    data: {
+                        stock: {
+                            decrement: item.quantity
+                        }
+                    }
+                });
+            }
+            console.log(`Order ${order.id} created successfully`);
+
+
+            createdOrders.push(order);
+        }
+
+        res.status(200).json({ message: "Orders placed successfully", orders: createdOrders });
+
     } catch (err: any) {
-        res.status(500).json({ message: "Error saving order", error: err.message });
+        console.error("Order saving failed:", err);
+        res.status(500).json({ message: "Error saving orders", error: err.message });
     }
 });
 

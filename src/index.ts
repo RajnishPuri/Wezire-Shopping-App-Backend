@@ -15,6 +15,7 @@ import sellerProductRoutes from "./routes/sellerRoutes/sellerProductRoutes";
 import fileUpload from "express-fileupload";
 import CustomerProductRoutes from "./routes/customerRoutes/customerProductRoutes";
 import paymentRoutes from './routes/Payment/payment';
+import OrderRoutes from "./routes/customerRoutes/customerOrderRoutes";
 
 
 dotenv.config();
@@ -46,15 +47,9 @@ app.use("/api/seller/auth", sellerAuthRoutes);
 app.use("/auth", googleAuthRoutes);
 app.use("/auth", githubAuthRoutes);
 app.use("/api/payment", paymentRoutes);
-
-// Seller Routes
 app.use("/api/seller/product", sellerProductRoutes);
-
-// Customer Routes
-// app.use("/api/customer", CustomerProductRoutes);
-
-// All User Routes
 app.use("/api/product", CustomerProductRoutes);
+app.use("/api/order", OrderRoutes);
 
 app.get("/", (req, res) => {
     res.send("Shopping App Backend is Running 🚀");
