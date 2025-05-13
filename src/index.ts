@@ -10,6 +10,12 @@ import googleAuthRoutes from "./routes/authRoutes/googleAuth";
 import passport from "./auth/google";
 import session from "express-session";
 import githubAuthRoutes from "./routes/authRoutes/github";
+import { cloudinaryConnect } from "./config/cloudinaryConfig";
+import sellerProductRoutes from "./routes/sellerRoutes/sellerProductRoutes";
+import fileUpload from "express-fileupload";
+import CustomerProductRoutes from "./routes/customerRoutes/customerProductRoutes";
+import paymentRoutes from './routes/Payment/payment';
+import OrderRoutes from "./routes/customerRoutes/customerOrderRoutes";
 
 
 dotenv.config();
@@ -19,6 +25,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(fileUpload());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
     session({
@@ -31,14 +39,17 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+cloudinaryConnect();
 
+// Auth Routes
 app.use("/api/customer/auth", customerAuthRoutes);
-
 app.use("/api/seller/auth", sellerAuthRoutes);
-
 app.use("/auth", googleAuthRoutes);
-
 app.use("/auth", githubAuthRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/seller/product", sellerProductRoutes);
+app.use("/api/product", CustomerProductRoutes);
+app.use("/api/order", OrderRoutes);
 
 app.get("/", (req, res) => {
     res.send("Shopping App Backend is Running 🚀");

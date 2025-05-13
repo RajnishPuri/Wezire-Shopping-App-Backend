@@ -10,6 +10,7 @@ interface AuthRequest extends Request {
 
 export const authenticateCustomer = (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.header("Authorization")?.split(" ")[1] || req.cookies.token;
+    console.log("Token:", token);
     if (!token) return res.status(401).json({ error: "Access denied. No token provided." });
 
     try {

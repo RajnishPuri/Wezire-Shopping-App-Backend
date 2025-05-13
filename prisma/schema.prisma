@@ -15,6 +15,7 @@ enum Role {
 
 enum OrderStatus {
   PENDING
+  CONFIRMED
   SHIPPED
   DELIVERED
   CANCELLED
@@ -32,6 +33,7 @@ model Customer {
   profile      CustomerProfile?
   orders       Order[]
   transactions Transaction[]
+  createdAt    DateTime         @default(now())
 }
 
 model CustomerProfile {
@@ -71,13 +73,19 @@ model SellerProfile {
 }
 
 model Product {
-  id         String      @id @default(uuid())
-  name       String
-  price      Float
-  stock      Int
-  sellerId   String
-  seller     Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  orderItems OrderItem[]
+  id          String      @id @default(uuid())
+  name        String
+  price       Float
+  description String?
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brandId     String?
+  brand       Brand?      @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  stock       Int
+  sellerId    String
+  seller      Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+  images      String[]
 }
 
 model Order {
@@ -91,7 +99,7 @@ model Order {
   orderTotal      Float
   orderItems      OrderItem[]
   orderPayments   OrderPayment[]
-  Transaction     Transaction[]
+  transactions    Transaction[]
 }
 
 model OrderItem {
@@ -105,34 +113,32 @@ model OrderItem {
   quantity       Int
   unitPrice      Float
   totalPrice     Float
-  shipmentStatus String  @default("Pending") // NEW FIELD
-  trackingId     String? // NEW FIELD
+  shipmentStatus String  @default("Pending")
+  trackingId     String?
 }
 
 model OrderPayment {
-  id            String      @id @default(uuid())
+  id            String   @id @default(uuid())
   orderId       String
-  order         Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  transactionId String      @unique
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   paymentMethod String
   paymentStatus String
-  paymentDate   DateTime    @default(now())
+  paymentDate   DateTime @default(now())
   amount        Float
+  transactionId String?  @unique
 }
 
 model Transaction {
-  id            String        @id @default(uuid())
-  transactionId String        @unique
+  id            String   @id @default(uuid())
+  transactionId String   @unique
   customerId    String
-  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderId       String
-  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   paymentMethod String
   paymentStatus String
-  paymentDate   DateTime      @default(now())
+  paymentDate   DateTime @default(now())
   amount        Float
-  OrderPayment  OrderPayment?
 }
 
 model Otp {
@@ -141,4 +147,16 @@ model Otp {
   email     String
   createdAt DateTime @default(now())
   expiresAt DateTime @default(dbgenerated("(now() + interval '10 minutes')"))
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Brand {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
 }

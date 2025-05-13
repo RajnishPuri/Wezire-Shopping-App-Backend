@@ -80,7 +80,7 @@ export const loginCustomer = async (req: Request, res: Response) => {
         const isMatch = await bcrypt.compare(password, customer.password);
         if (!isMatch) return res.status(400).json({ error: "Invalid email or password" });
 
-        const token = jwt.sign({ customerId: customer.id }, JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ customerId: customer.id }, JWT_SECRET, { expiresIn: "7d" });
 
         res.cookie("token", token, { httpOnly: true });
 

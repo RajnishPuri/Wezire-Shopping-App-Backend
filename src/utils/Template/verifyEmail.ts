@@ -67,7 +67,7 @@ export const otpTemplate = (otp: number) => {
 	<body>
 		<div class="container">
 			<a href="https://razz-portfolio-seven.vercel.app/"><img class="logo"
-					src="https://drive.google.com/file/d/1Ob6_KyoPfBH6nOCKQgNThZ9y-BtjPulO/view?usp=sharing" alt="StudyNotion Logo"></a>
+					src="https://drive.google.com/file/d/1Ob6_KyoPfBH6nOCKQgNThZ9y-BtjPulO/view?usp=sharing" alt="Olice Logo"></a>
 			<div class="message">OTP Verification Email</div>
 			<div class="body">
 				<p>Dear User,</p>
