@@ -2,6 +2,8 @@ import express from "express";
 import passport from "../../auth/google";
 import { Request, Response, NextFunction } from "express";
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 const router = express.Router();
 
 router.get("/google", (req: Request, res: Response): any => {
@@ -18,7 +20,7 @@ router.get("/google", (req: Request, res: Response): any => {
 
 router.get(
     "/google/callback",
-    passport.authenticate("google", { failureRedirect: "http://localhost:5173/", session: false }),
+    passport.authenticate("google", { failureRedirect: `${FRONTEND_URL}/`, session: false }),
     (req: Request, res: Response): any => {
         const user = req.user as { token: string; user: { role: string } };
 
@@ -26,9 +28,8 @@ router.get(
             return res.status(400).json({ error: "Authentication failed" });
         }
 
-        res.redirect(`http://localhost:5173/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
+        res.redirect(`${FRONTEND_URL}/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
     }
 );
-
 
 export default router;
