@@ -26,7 +26,7 @@ router.get(
             return res.status(400).json({ error: "Authentication failed" });
         }
 
-        res.redirect(`http://localhost:5173/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
+        res.redirect(`https://wezire-shopping-app-frontend.vercel.app/auth-success?token=${user.token}&role=${user.user.role.toLowerCase()}`);
     }
 );
 
